@@ -7,8 +7,17 @@
         mc:Ignorable="d"
         Loaded="Window_Loaded"
         Title="MainMenu" Height="800" Width="1200">
-    <Grid>
-        <TreeView Grid.Column="0" x:Name="SiteView" Margin="10.4,215,221.74,26.4" BorderBrush="#FF0072C6" Background="White" Grid.ColumnSpan="2" FontFamily="Segoe UI Black" Foreground="#FF0072C6">
+    <Grid Margin="10">
+        
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="2*" />
+        </Grid.ColumnDefinitions>
+
+        <StackPanel Grid.Column="1">
+        <Label Name="LLoginMessage" Content="SPO Sites" HorizontalAlignment="Center" Background="Blue" Height="35" Width="200" Foreground="White" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" />
+        <TextBlock Name="TBLoginFillerMid" Height="10" />
+        <TreeView x:Name="SiteView" BorderBrush="#FF0072C6" Background="White" FontFamily="Segoe UI Black" Foreground="#FF0072C6" Height="705">
             <TreeView.Resources>
                 <Style TargetType="{x:Type TreeViewItem}">
                     <Setter Property="HeaderTemplate">
@@ -24,5 +33,6 @@
                 </Style>
             </TreeView.Resources>
         </TreeView>
+        </StackPanel>
     </Grid>
 </Window>
