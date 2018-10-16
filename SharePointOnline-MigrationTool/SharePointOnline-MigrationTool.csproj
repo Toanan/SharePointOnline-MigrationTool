@@ -190,8 +190,16 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="SPCredentials.cs" />
-    <Page Include="SigningScreen.xaml">
+    <Compile Include="Logic\SPOLogic.cs" />
+    <Compile Include="Window\MainMenu.xaml.cs">
+      <DependentUpon>MainMenu.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Logic\SPCredentials.cs" />
+    <Page Include="Window\MainMenu.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Window\SigningScreen.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -199,7 +207,7 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="SigningScreen.xaml.cs">
+    <Compile Include="Window\SigningScreen.xaml.cs">
       <DependentUpon>SigningScreen.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
