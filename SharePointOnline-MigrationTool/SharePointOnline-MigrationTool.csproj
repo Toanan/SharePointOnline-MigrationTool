@@ -190,6 +190,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Logic\HeaderToImageConverter.cs" />
     <Compile Include="Logic\SPOLogic.cs" />
     <Compile Include="Window\MainMenu.xaml.cs">
       <DependentUpon>MainMenu.xaml</DependentUpon>
@@ -238,6 +239,14 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Img\default.png" />
+    <Resource Include="Img\Icon.png" />
+    <Resource Include="Img\Lib.png" />
+    <Resource Include="Img\List.png" />
+    <Resource Include="Img\Sharepoint-logo.png" />
+    <Resource Include="Img\SPSite.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

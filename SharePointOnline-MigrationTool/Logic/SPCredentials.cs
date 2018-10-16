@@ -1,6 +1,7 @@
 ﻿using OfficeDevPnP.Core.Utilities;
 using System.Security;
 using Microsoft.SharePoint.Client;
+using CredentialManagement;
 
 namespace SharePointOnline_MigrationTool
 {
@@ -15,17 +16,17 @@ namespace SharePointOnline_MigrationTool
         public static SharePointOnlineCredentials SaveCredentials(string Url, string UserName, SecureString SecurePassWord)
         {
 
-            //// We create the Credentials to Save
-            //Credential Cred = new Credential
-            //{
-            //    Target = Url, // Credential target = Site URL
-            //    Username = UserName,
-            //    SecurePassword = SecurePassWord,
-            //    PersistanceType = PersistanceType.LocalComputer,
-            //    Type = CredentialType.Generic,
-            //};
-            //// We push it the the Credential Manager and return it
-            //Cred.Save();
+            // We create the Credentials to Save
+            Credential Cred = new Credential
+            {
+                Target = Url, // Credential target = Site URL
+                Username = UserName,
+                SecurePassword = SecurePassWord,
+                PersistanceType = PersistanceType.LocalComputer,
+                Type = CredentialType.Generic,
+            };
+            // We push it the the Credential Manager and return it
+            Cred.Save();
 
             SharePointOnlineCredentials cred = CredentialManager.GetSharePointOnlineCredential(Url);
 
