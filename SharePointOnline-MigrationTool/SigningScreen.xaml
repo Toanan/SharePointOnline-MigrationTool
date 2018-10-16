@@ -1,0 +1,39 @@
+﻿<Window x:Class="SharePointOnline_MigrationTool.SigningScreen"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:SharePointOnline_MigrationTool"
+        mc:Ignorable="d"
+        Title="SPO-MigrationTool > Sign In" Height="450" Width="800">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        
+        <StackPanel Grid.Column="0" Margin="10" >
+            <TextBlock Name="TBLoginFillerTop" Height="50" />
+            <Label Name="LLoginMessage" Content="Connect to your Tenant" HorizontalAlignment="Center" Background="Blue" Height="35" Width="200" Foreground="White" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" />
+            <TextBlock Name="TBLoginFillerMid" Height="50" />
+            <Label Name="LTenant" Content="Tenant" HorizontalContentAlignment="Center"/>
+            <StackPanel Orientation="Horizontal">
+                <Label Name="LTenantUrlBegin" Content="https://" HorizontalAlignment="Left" Width="55"/>
+                <TextBox Name="TBTenant" Width="180" HorizontalAlignment="Left" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
+                <Label Name="LTenantUrlEnd" Content="-admin.sharepoint.com" HorizontalAlignment="Left" Width="150" />
+            </StackPanel>
+            <Label Name="LUserName" Content="User Name" HorizontalContentAlignment="Center"/>
+            <TextBox Name="TBUserName" Height="25" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
+            <Label Name="LPassWord" Content="Password"  HorizontalContentAlignment="Center"/>
+            <PasswordBox Name="PBPassword" Height="25" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
+            <TextBlock Name="TBLoginFillerBot" Height="25" />
+            <StackPanel Orientation="Horizontal">
+                <CheckBox Name="CBSaveCred" VerticalContentAlignment="Center"/>
+                <Label Name="SaveCred" Content="Save Credential on this machine                    " VerticalContentAlignment="Center"/>
+                <Button Name="Connect" Content="Connect" Width="75" Height="35" Click="Connect_Click"/>
+            </StackPanel>
+
+
+        </StackPanel>
+    </Grid>
+</Window>
