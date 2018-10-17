@@ -13,10 +13,16 @@
             <ColumnDefinition Width="*" />
             <ColumnDefinition Width="2*" />
         </Grid.ColumnDefinitions>
-
+        <StackPanel Grid.Column="0">
+            <TextBlock Name="TBMenuTopLeft" Height="10" />
+            <TextBox Name="TBSource" />
+            <TextBox Name="TBTarget" />
+            <Button Name="Migrate" Content="Migrate" Click="Migrate_Click" />
+        </StackPanel>
+        
         <StackPanel Grid.Column="1">
         <Label Name="LLoginMessage" Content="SPO Sites" HorizontalAlignment="Center" Background="Blue" Height="35" Width="200" Foreground="White" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" />
-        <TextBlock Name="TBLoginFillerMid" Height="10" />
+        <TextBlock Name="TBMenuTopRight" Height="10" />
         <TreeView x:Name="SiteView" BorderBrush="#FF0072C6" Background="White" FontFamily="Segoe UI Black" Foreground="#FF0072C6" Height="705">
             <TreeView.Resources>
                 <Style TargetType="{x:Type TreeViewItem}">

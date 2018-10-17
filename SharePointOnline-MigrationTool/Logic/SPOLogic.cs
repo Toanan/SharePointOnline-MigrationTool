@@ -24,28 +24,34 @@ namespace SharePointOnline_MigrationTool
         public SharePointOnlineCredentials Credentials { get; set; }
         #endregion
 
+        #region MyRegion
+
+        #endregion
         // Method - Returns tenantSiteProps
         public SPOSitePropertiesEnumerable getTenantProp()
         { 
-            try
+            using (ClientContext ctx = new ClientContext(Url))
             {
-                ClientContext ctx = new ClientContext(Url);
-                ctx.Credentials = Credentials;
-                Tenant tenant = new Tenant(ctx);
-                SPOSitePropertiesEnumerable prop = tenant.GetSitePropertiesFromSharePoint("0", true);
-                ctx.Load(prop);
-                ctx.ExecuteQuery();
-                return prop;
+                try
+                {
+                    ctx.Credentials = Credentials;
+                    Tenant tenant = new Tenant(ctx);
+                    SPOSitePropertiesEnumerable prop = tenant.GetSitePropertiesFromSharePoint("0", true);
+                    ctx.Load(prop);
+                    ctx.ExecuteQuery();
+                    return prop;
+                }
+                catch (System.Exception ex)
+                {
+                    MessageBox.Show(ex.Message);
+                }
+                return null;
             }
-            catch (System.Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
-            return null;
+            
         }// End Method
 
-        // Method - Returns webProps
-        public Web getWebProps(string Url, string CredName)
+        // Method - Returns webProps - NOT USED YET !
+        public Web getWebProps(string Url)
         {
             // Creating ClientContext and passing Credentials from CredentialManagement
             using (ClientContext ctx = new ClientContext(Url))
@@ -71,7 +77,7 @@ namespace SharePointOnline_MigrationTool
         }// End Method
 
         // Method - Returns web.Lists
-        public IEnumerable<List> getWebLists(string Url, SharePointOnlineCredentials Credentials)
+        public IEnumerable<List> getWebLists()
         {
             // Using Clientcontext to avoid memory usage with no ctx.dispose()
             using (ClientContext ctx = new ClientContext(Url))
@@ -95,6 +101,44 @@ namespace SharePointOnline_MigrationTool
             }
         }// End Method
 
+
+
+        // Method - Migrate <=2mb file 
+        public void migrateLightFile(string sourcePath, string targetLib)
+        {
+    
+            // We set the fileName from sourcePath
+            string fileName = sourcePath.Substring(sourcePath.LastIndexOf("\\") + 1);
+
+            using (ClientContext ctx = new ClientContext(Url))
+            {
+                ctx.Credentials = Credentials;
+
+                // We create the FileInfo to migrate
+                FileCreationInformation fileInfo = new FileCreationInformation();
+                fileInfo.Url = fileName;
+                fileInfo.Overwrite = true;
+                fileInfo.Content = System.IO.File.ReadAllBytes(sourcePath);
+
+                Web web = ctx.Web;
+
+                // We set the target library and folder
+                List lib = web.Lists.GetByTitle(targetLib);
+                Folder folder = lib.RootFolder.Folders.GetByUrl(string.Format("{0}/folder/", targetLib));
+
+                // We push the file to SPO
+                File file = folder.Files.Add(fileInfo);
+                //File file = lib.RootFolder.Files.Add(fileInfo);
+                ctx.ExecuteQuery();
+
+                file.ListItemAllFields["Created"] = "2015-07-03";
+                //file.ListItemAllFields["Modified"] = "2018-01-01";
+                //file.ListItemAllFields["Author"] = "bob@toanan.onmicrosoft.com";
+                //file.ListItemAllFields["Editor"] = "bobo@toanan.onmicrosoft.com";
+                file.ListItemAllFields.Update();
+                ctx.ExecuteQuery();
+            }
+        } // End Method
     }
 
 }

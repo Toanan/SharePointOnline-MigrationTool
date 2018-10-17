@@ -41,32 +41,31 @@ namespace SharePointOnline_MigrationTool
         // Method - Window.loaded -Load Tenant sites TreeView
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            // Using CC, we call SPOLogic method to return Tenant Sites
-            using (ClientContext ctx = new ClientContext(tenantUrl))
+
+            // Call the SPOLogic object
+            SPOLogic sp = new SPOLogic(credential, tenantUrl);
+            // Ask for Sites and loop 
+            SPOSitePropertiesEnumerable Tenant = sp.getTenantProp();
+            foreach (var site in Tenant)
             {
-                // Call SPOLogic
-                SPOLogic sp = new SPOLogic(credential, tenantUrl);
-                // Ask for Sites and loop 
-                SPOSitePropertiesEnumerable Tenant = sp.getTenantProp();
-                foreach (var site in Tenant)
+                var item = new TreeViewItem
                 {
-                    var item = new TreeViewItem
-                    {
-                        Header = site.Url,
-                        Tag = site.Url,
-                    };
-                    // Adding dumy item.items for expand icon to show
-                    item.Items.Add(null);
-                    // Listen out for item being expanded
-                    item.Expanded += Folder_Expanded;
-                    SiteView.Items.Add(item);
-                }
-            }  
+                    Header = site.Url,
+                    Tag = site.Url,
+                };
+                // Adding dumy item.items for expand icon to show
+                item.Items.Add(null);
+                // Listen out for item being expanded
+                item.Expanded += Folder_Expanded;
+                SiteView.Items.Add(item);
+            }     
         }// End Method
 
         // Method - TreeViewItem.Expand Listener - Call for Site Lists
         private void Folder_Expanded(object sender, RoutedEventArgs e)
         {
+
+            //We declare the sender TreeViewItem
             var item = (TreeViewItem)sender;
 
             // If the item only contains the dumy data
@@ -78,16 +77,17 @@ namespace SharePointOnline_MigrationTool
             // Get Site library
             var SitePath = (string)item.Tag;
 
+            // We populate TreeViewItems using Threading
             Task.Factory.StartNew(() =>
             {
-                // Call for the expended site Web
+                // Call the SPOLogic object and pass the item.Url
                 var sp = new SPOLogic(credential, SitePath);
-                // Filter on not hidden file
-                IEnumerable<Microsoft.SharePoint.Client.List> lists = sp.getWebLists(SitePath, credential).Where(l => !l.Hidden);
+                // We call for this site Lists and filter hidden Lists
+                IEnumerable<Microsoft.SharePoint.Client.List> lists = sp.getWebLists().Where(l => !l.Hidden);
 
                 item.Dispatcher.Invoke(() =>
                 {
-                    // Creating TreeeViewIems from lists
+                    // We push TreeViewIems from lists
                     foreach (var list in lists)
                     {
                         var subitem = new TreeViewItem
@@ -97,8 +97,29 @@ namespace SharePointOnline_MigrationTool
                         };
                         item.Items.Add(subitem);
                     }
-                });// End Dispatch
+                });
             });// End Task        
         }// End Method
+
+        // Method - Migrate.onClick - Copy Files from source to target library -TEST !
+        private void Migrate_Click(object sender, RoutedEventArgs e)
+        {
+            //We set up source and target strings
+            string source = @"c:\tmp\test.txt"; //TBSource.Text;
+            string target = TBTarget.Text;
+
+            // Call the SPOLogic object
+            SPOLogic sp = new SPOLogic(credential, "https://toanan.sharepoint.com/sites/demo");
+            try
+            {
+                //Try to copy the file and give success message
+                sp.migrateLightFile(source, target);
+                MessageBox.Show(string.Format("The file {0} has been migrated", source));
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
     }
 }
