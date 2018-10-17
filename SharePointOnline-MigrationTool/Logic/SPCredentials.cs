@@ -2,6 +2,8 @@
 using System.Security;
 using Microsoft.SharePoint.Client;
 using CredentialManagement;
+using System.Windows;
+using System;
 
 namespace SharePointOnline_MigrationTool
 {
@@ -36,10 +38,21 @@ namespace SharePointOnline_MigrationTool
         // Method - Return Stored Credentials
         public static SharePointOnlineCredentials GetStoredCredentials(string Url)
         {
-
-            SharePointOnlineCredentials cred = CredentialManager.GetSharePointOnlineCredential(Url);
-
-            return cred;
+            try
+            {
+                SharePointOnlineCredentials cred = CredentialManager.GetSharePointOnlineCredential(Url);
+                return cred;
+            }
+            catch (System.ArgumentNullException)
+            {
+                MessageBox.Show("Please register this tenant before trying to login");
+                return null;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+                return null;
+            }  
         } // End Method
 
         // Method - Return Credentials

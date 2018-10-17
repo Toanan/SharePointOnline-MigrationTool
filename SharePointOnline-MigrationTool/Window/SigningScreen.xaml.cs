@@ -41,9 +41,14 @@ namespace SharePointOnline_MigrationTool
                 // We save the credentials to the Credential Manager
                 Cred = SPCredentials.SaveCredentials(tenantUrl, TBUserName.Text, PBPassword.SecurePassword);
 
+                // Handling error on Credentials Creation
+                if (Cred != null)
+                {
+                    this.Hide();
+                    new MainMenu(tenantUrl, Cred).Show();
+                }
                 // We hide this window, show the menu and pass the credentials and Tenant Url
-                this.Hide();
-                new MainMenu(tenantUrl, Cred).Show();
+                
                 return;
             }
 
@@ -53,9 +58,13 @@ namespace SharePointOnline_MigrationTool
                 // We try to load the credential stored for the targeter Tenant
                 Cred = SPCredentials.GetStoredCredentials(tenantUrl);
                 
-                // We hide this window, show the menu and pass the credentials and Tenant Url
-                this.Hide();
-                new MainMenu(tenantUrl, Cred).Show();
+                // Handling Error on Credentials not set
+                if (Cred != null)
+                {
+                    // We hide this window, show the menu and pass the credentials and Tenant Url
+                    this.Hide();
+                    new MainMenu(tenantUrl, Cred).Show();
+                }
                 return;
             }
 
