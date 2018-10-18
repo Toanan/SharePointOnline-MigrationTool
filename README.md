@@ -1,5 +1,7 @@
 # SharePointOnline-MigrationTool
 
+User stories :
+
 # Sign in screen
 
 One-time login
