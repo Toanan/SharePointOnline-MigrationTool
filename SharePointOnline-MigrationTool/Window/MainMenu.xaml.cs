@@ -2,19 +2,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 using Microsoft.SharePoint.Client;
-using System.Net;
-using System.Security;
 using OfficeDevPnP.Core;
 using Microsoft.Online.SharePoint.TenantAdministration;
 
@@ -121,5 +112,26 @@ namespace SharePointOnline_MigrationTool
                 MessageBox.Show(ex.Message);
             }
         }
+
+        // Method get List Items.onClick() - retrieve list items
+        private void BtnGetListItems_Click(object sender, RoutedEventArgs e)
+        {
+            var selectedlib = SiteView.SelectedItem as TreeViewItem;
+            string libfull = selectedlib.Header.ToString();
+            string lib = libfull.Split('(')[0].Trim();
+            var Parent = selectedlib.Parent as TreeViewItem;
+            string siteUrl = Parent.Header.ToString();
+
+            SPOLogic spol = new SPOLogic(credential, siteUrl);
+
+            ListItemCollection listItems = spol.getLibraryFile(lib);
+
+            foreach (ListItem listItem in listItems)
+            {
+                TBOut.Text += string.Format("{0} - {1}{2}", listItem["Title"], listItem["Modified"], Environment.NewLine);
+            }
+
+
+        }// End Method
     }
 }

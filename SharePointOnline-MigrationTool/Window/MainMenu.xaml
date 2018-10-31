@@ -18,6 +18,8 @@
             <TextBox Name="TBSource" />
             <TextBox Name="TBTarget" />
             <Button Name="Migrate" Content="Migrate" Click="Migrate_Click" />
+            <Button Name="BtnGetListItems" Content="Get list items" Click="BtnGetListItems_Click" />
+            <TextBox Name="TBOut" Height="667" Margin="0,0,0.2,0" />
         </StackPanel>
         
         <StackPanel Grid.Column="1">

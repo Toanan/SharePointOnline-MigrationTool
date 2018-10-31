@@ -11,13 +11,13 @@ namespace SharePointOnline_MigrationTool
 {
     class SPOLogic
     {
-
+        // Constructor
         public SPOLogic(SharePointOnlineCredentials Credentials, string Url)
         {
             this.Credentials = Credentials;
             this.Url = Url;
 
-        }
+        }// End constructor
 
         #region Props
         public string Url { get; set; }
@@ -104,7 +104,6 @@ namespace SharePointOnline_MigrationTool
         // Method - Migrate <=2mb file 
         public void migrateLightFile(string sourcePath, string targetLib)
         {
-    
             // We set the fileName from sourcePath
             string fileName = sourcePath.Substring(sourcePath.LastIndexOf("\\") + 1);
 
@@ -137,6 +136,29 @@ namespace SharePointOnline_MigrationTool
                 ctx.ExecuteQuery();
             }
         } // End Method
+
+        // Method - Get files from targetted library
+
+        public ListItemCollection getLibraryFile(string targetLib)
+        {
+            // using ClientContext
+            using (ClientContext ctx = new ClientContext(Url))
+            {
+                // We target the list
+                List list = ctx.Web.Lists.GetByTitle(targetLib);
+
+                // We get the items from that list (max 10 000)
+                CamlQuery camlQuery = new CamlQuery();
+                camlQuery.ViewXml = "<View><RowLimit>100</RowLimit></View>";
+                ListItemCollection collListItem = list.GetItems(camlQuery);
+
+                // Load and execute
+                ctx.Load(collListItem);
+                ctx.ExecuteQuery();
+
+                return collListItem;
+            }
+        }
     }
 
 }
