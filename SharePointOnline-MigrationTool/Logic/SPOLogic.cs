@@ -101,8 +101,6 @@ namespace SharePointOnline_MigrationTool
             }
         }// End Method
 
-
-
         // Method - Migrate <=2mb file 
         public void migrateLightFile(string sourcePath, string targetLib)
         {
