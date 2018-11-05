@@ -144,17 +144,24 @@ namespace SharePointOnline_MigrationTool
             // using ClientContext
             using (ClientContext ctx = new ClientContext(Url))
             {
+                ctx.Credentials = Credentials;
+
                 // We target the list
                 List list = ctx.Web.Lists.GetByTitle(targetLib);
 
                 // We get the items from that list (max 10 000)
                 CamlQuery camlQuery = new CamlQuery();
-                camlQuery.ViewXml = "<View><RowLimit>100</RowLimit></View>";
+                camlQuery.ViewXml = "<View Scope =\"RecursiveAll\"></View>";
                 ListItemCollection collListItem = list.GetItems(camlQuery);
 
                 // Load and execute
-                ctx.Load(collListItem);
-                ctx.ExecuteQuery();
+                ctx.Load(collListItem, items => items.Include(
+                         item => item.Id,
+                         item => item.DisplayName,
+                         item => item.HasUniqueRoleAssignments,
+                         item => item.FieldValuesAsHtml,
+                         item => item.RoleAssignments));
+                ctx.ExecuteQueryRetry();
 
                 return collListItem;
             }

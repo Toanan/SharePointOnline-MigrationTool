@@ -128,7 +128,7 @@ namespace SharePointOnline_MigrationTool
 
             foreach (ListItem listItem in listItems)
             {
-                TBOut.Text += string.Format("{0} - {1}{2}", listItem["Title"], listItem["Modified"], Environment.NewLine);
+                TBOut.Text += string.Format("{0} - {1}{2}", listItem.DisplayName ,listItem.FieldValuesAsHtml.FieldValues["Modified"], Environment.NewLine);
             }
 
 
