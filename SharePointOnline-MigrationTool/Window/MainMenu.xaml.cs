@@ -1,13 +1,13 @@
-﻿using CredentialManagement;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using Microsoft.SharePoint.Client;
-using OfficeDevPnP.Core;
 using Microsoft.Online.SharePoint.TenantAdministration;
+using Microsoft.WindowsAPICodePack.Dialogs;
+using System.IO;
 
 namespace SharePointOnline_MigrationTool
 {
@@ -16,12 +16,14 @@ namespace SharePointOnline_MigrationTool
     /// </summary>
     public partial class MainMenu : Window
     {
+        #region Ctor
         public MainMenu(string Url, SharePointOnlineCredentials credential)
         {
             InitializeComponent();
             this.credential = credential;
             this.tenantUrl = Url;
         }
+        #endregion
 
         #region Props
         public string tenantUrl { get; set; }
@@ -29,7 +31,13 @@ namespace SharePointOnline_MigrationTool
         public SharePointOnlineCredentials credential { get; set; }
         #endregion
 
-        // Method - Window.loaded -Load Tenant sites TreeView
+        #region Functions
+
+        /// <summary>
+        /// Popullate treeview with SPOSite
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
 
@@ -49,10 +57,14 @@ namespace SharePointOnline_MigrationTool
                 // Listen out for item being expanded
                 item.Expanded += Folder_Expanded;
                 SiteView.Items.Add(item);
-            }     
-        }// End Method
+            }
+        }
 
-        // Method - TreeViewItem.Expand Listener - Call for Site Lists
+        /// <summary>
+        /// Expand SPOSite in the treeview to show non hidden lists
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void Folder_Expanded(object sender, RoutedEventArgs e)
         {
 
@@ -90,9 +102,13 @@ namespace SharePointOnline_MigrationTool
                     }
                 });
             });// End Task        
-        }// End Method
+        }
 
-        // Method - Migrate.onClick - Copy Files from source to target library -TEST !
+        /// <summary>
+        /// Migrate single file (2mb max) from local directory to library - test purpose 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void Migrate_Click(object sender, RoutedEventArgs e)
         {
             //We set up source and target strings
@@ -113,25 +129,78 @@ namespace SharePointOnline_MigrationTool
             }
         }
 
-        // Method get List Items.onClick() - retrieve list items
+        /// <summary>
+        /// Retrive the items from the selected list
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void BtnGetListItems_Click(object sender, RoutedEventArgs e)
         {
+
+            //We retrieve the selected list and related SPOSite
+            string[] selection = getSelectedTreeview();
+
+            //We prompt user for directory selection
+            var dialog = new CommonOpenFileDialog();
+            dialog.IsFolderPicker = true;
+            dialog.Multiselect = false;
+            CommonFileDialogResult result = dialog.ShowDialog();
+
+            List<string> sourceFiles = getSourceItems(dialog.FileName);
+
+            //We instanciate the SPOLogic class
+            SPOLogic spol = new SPOLogic(credential, selection[1]);
+
+            //We retrieve listitems from the selected library
+            ListItemCollection listItems = spol.getLibraryFile(selection[0]);
+
+            //We loop the listitems to show on TBOut
+            foreach (ListItem listItem in listItems)
+            {
+                TBOut.Text += string.Format("{0} - {1}{2}{3}", listItem.FieldValues["FileLeafRef"], listItem.FieldValues["Modified"], listItem.FieldValues["FileRef"], Environment.NewLine);
+            }
+        }
+
+        /// <summary>
+        /// Retrive the selected list and related SPOSite url in an array 0=>Lib , 1 => SiteUrl
+        /// </summary>
+        private string[] getSelectedTreeview()
+        {
+            //We exctract the selected library name
             var selectedlib = SiteView.SelectedItem as TreeViewItem;
             string libfull = selectedlib.Header.ToString();
             string lib = libfull.Split('(')[0].Trim();
+
+            //We extract the SPOSite related (Treeviewitem parent)
             var Parent = selectedlib.Parent as TreeViewItem;
             string siteUrl = Parent.Header.ToString();
 
-            SPOLogic spol = new SPOLogic(credential, siteUrl);
+            //We create the result array containing Library and site url
+            string[] selected = { lib, siteUrl };
 
-            ListItemCollection listItems = spol.getLibraryFile(lib);
+            return selected;
+        }
 
-            foreach (ListItem listItem in listItems)
+        /// <summary>
+        /// Retrive items from local directory
+        /// </summary>
+        /// <param name="url"></param>
+        private List<string> getSourceItems(string path)
+        {
+            List<string> fileList = new List<string>();
+
+            // Call EnumerateFiles in a foreach-loop.
+            foreach (String file in Directory.EnumerateFiles(path,
+                "*.*",
+                SearchOption.AllDirectories))
             {
-                TBOut.Text += string.Format("{0} - {1}{2}", listItem.DisplayName ,listItem.FieldValuesAsHtml.FieldValues["Modified"], Environment.NewLine);
+                {
+                    fileList.Add(file);
+                }  
             }
+            return fileList;
+        }
 
-
-        }// End Method
+        #endregion
     }
 }

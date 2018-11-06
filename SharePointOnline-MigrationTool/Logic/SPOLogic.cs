@@ -20,13 +20,13 @@ namespace SharePointOnline_MigrationTool
         }// End constructor
 
         #region Props
+
         public string Url { get; set; }
+
         public SharePointOnlineCredentials Credentials { get; set; }
-        #endregion
-
-        #region MyRegion
 
         #endregion
+
         // Method - Returns tenantSiteProps
         public SPOSitePropertiesEnumerable getTenantProp()
         { 
@@ -155,12 +155,14 @@ namespace SharePointOnline_MigrationTool
                 ListItemCollection collListItem = list.GetItems(camlQuery);
 
                 // Load and execute
-                ctx.Load(collListItem, items => items.Include(
+                ctx.Load(collListItem);
+                    /*, items => items.Include(
                          item => item.Id,
                          item => item.DisplayName,
                          item => item.HasUniqueRoleAssignments,
                          item => item.FieldValuesAsHtml,
                          item => item.RoleAssignments));
+                    */
                 ctx.ExecuteQueryRetry();
 
                 return collListItem;
