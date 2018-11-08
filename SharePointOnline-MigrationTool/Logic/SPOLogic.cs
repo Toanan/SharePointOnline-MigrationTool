@@ -9,15 +9,25 @@ using System.Windows;
 
 namespace SharePointOnline_MigrationTool
 {
+
+    /// <summary>
+    /// Handle all the logic to interact with SPO
+    /// </summary>
     class SPOLogic
     {
-        // Constructor
+        #region Ctor
+        /// <summary>
+        /// Ctor - Provide Crendentials and admin site Url as props
+        /// </summary>
+        /// <param name="Credentials"></param>
+        /// <param name="Url"></param>
         public SPOLogic(SharePointOnlineCredentials Credentials, string Url)
         {
             this.Credentials = Credentials;
             this.Url = Url;
 
-        }// End constructor
+        }
+        #endregion
 
         #region Props
 
@@ -27,7 +37,10 @@ namespace SharePointOnline_MigrationTool
 
         #endregion
 
-        // Method - Returns tenantSiteProps
+        /// <summary>
+        /// Return SPOSites tenant wide
+        /// </summary>
+        /// <returns></returns>
         public SPOSitePropertiesEnumerable getTenantProp()
         { 
             using (ClientContext ctx = new ClientContext(Url))
@@ -44,13 +57,18 @@ namespace SharePointOnline_MigrationTool
                 catch (System.Exception ex)
                 {
                     MessageBox.Show(ex.Message);
+                    new SigningScreen().Show();
                 }
                 return null;
             }
             
-        }// End Method
+        }
 
-        // Method - Returns webProps - NOT USED YET !
+        /// <summary>
+        /// Return SPOSite Title, Users, Webtemplate and Configuration
+        /// </summary>
+        /// <param name="Url">SPOSite Url</param>
+        /// <returns>Web (filtered, see description)</returns>
         public Web getWebProps(string Url)
         {
             // Creating ClientContext and passing Credentials from CredentialManagement
@@ -74,9 +92,12 @@ namespace SharePointOnline_MigrationTool
             }
 
 
-        }// End Method
+        }
 
-        // Method - Returns web.Lists
+        /// <summary>
+        /// Return List from a SPOSite
+        /// </summary>
+        /// <returns>Lists in SPOSite</returns>
         public IEnumerable<List> getWebLists()
         {
             // Using Clientcontext to avoid memory usage with no ctx.dispose()
@@ -99,9 +120,13 @@ namespace SharePointOnline_MigrationTool
                 }
                 return null;
             }
-        }// End Method
+        }
 
-        // Method - Migrate <=2mb file 
+        /// <summary>
+        /// Copy less than 2 MB file from a local sourcePath to a SPO Library
+        /// </summary>
+        /// <param name="sourcePath">Local source Path (folder only)</param>
+        /// <param name="targetLib">Library Name</param>
         public void migrateLightFile(string sourcePath, string targetLib)
         {
             // We set the fileName from sourcePath
@@ -135,10 +160,13 @@ namespace SharePointOnline_MigrationTool
                 file.ListItemAllFields.Update();
                 ctx.ExecuteQuery();
             }
-        } // End Method
+        }
 
-        // Method - Get files from targetted library
-
+        /// <summary>
+        /// Return files from an SPOLibrary
+        /// </summary>
+        /// <param name="targetLib">Library Name</param>
+        /// <returns>listitems in the library</returns>
         public ListItemCollection getLibraryFile(string targetLib)
         {
             // using ClientContext

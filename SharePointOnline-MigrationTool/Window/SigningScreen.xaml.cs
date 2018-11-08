@@ -8,12 +8,20 @@ namespace SharePointOnline_MigrationTool
     /// </summary>
     public partial class SigningScreen : Window
     {
+        #region Ctor
         public SigningScreen()
         {
             InitializeComponent();
         }
+        #endregion
 
-        // Method - Connect.onClick() 
+        #region eventHandler
+        
+        /// <summary>
+        /// Login scenarios handler based on fields filled
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void Connect_Click(object sender, RoutedEventArgs e)
         {
             // We Set the Tenant Url
@@ -76,5 +84,7 @@ namespace SharePointOnline_MigrationTool
             new MainMenu(tenantUrl, Cred).Show();
             return;
         }
+        
+        #endregion
     }
 }

@@ -31,7 +31,7 @@ namespace SharePointOnline_MigrationTool
         public SharePointOnlineCredentials credential { get; set; }
         #endregion
 
-        #region Functions
+        #region eventHandler
 
         /// <summary>
         /// Popullate treeview with SPOSite
@@ -40,10 +40,9 @@ namespace SharePointOnline_MigrationTool
         /// <param name="e"></param>
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-
             // Call the SPOLogic object
             SPOLogic sp = new SPOLogic(credential, tenantUrl);
-            // Ask for Sites and loop 
+            // Ask for Sites and loop
             SPOSitePropertiesEnumerable Tenant = sp.getTenantProp();
             foreach (var site in Tenant)
             {
@@ -57,7 +56,7 @@ namespace SharePointOnline_MigrationTool
                 // Listen out for item being expanded
                 item.Expanded += Folder_Expanded;
                 SiteView.Items.Add(item);
-            }
+            }  
         }
 
         /// <summary>
@@ -136,17 +135,19 @@ namespace SharePointOnline_MigrationTool
         /// <param name="e"></param>
         private void BtnGetListItems_Click(object sender, RoutedEventArgs e)
         {
+            //We prompt for a folder path and retrieve related files
+            string sourcePath = prompSourcePath();
+            List<FileInfo> sourceFiles = getSourceFiles(sourcePath);
 
-            //We retrieve the selected list and related SPOSite
+            foreach (FileInfo file in sourceFiles)
+            {
+                string time = file.LastAccessTimeUtc.ToString();
+                TBOut.Text += time;
+                TBOut.Text += Environment.NewLine;
+            }
+
+            //We retrieve the selected list from the Treeview and related SPOSite
             string[] selection = getSelectedTreeview();
-
-            //We prompt user for directory selection
-            var dialog = new CommonOpenFileDialog();
-            dialog.IsFolderPicker = true;
-            dialog.Multiselect = false;
-            CommonFileDialogResult result = dialog.ShowDialog();
-
-            List<string> sourceFiles = getSourceItems(dialog.FileName);
 
             //We instanciate the SPOLogic class
             SPOLogic spol = new SPOLogic(credential, selection[1]);
@@ -154,11 +155,33 @@ namespace SharePointOnline_MigrationTool
             //We retrieve listitems from the selected library
             ListItemCollection listItems = spol.getLibraryFile(selection[0]);
 
+
+
             //We loop the listitems to show on TBOut
             foreach (ListItem listItem in listItems)
             {
                 TBOut.Text += string.Format("{0} - {1}{2}{3}", listItem.FieldValues["FileLeafRef"], listItem.FieldValues["Modified"], listItem.FieldValues["FileRef"], Environment.NewLine);
             }
+        }
+        #endregion
+
+        #region Functions
+
+        /// <summary>
+        /// Prompt user for a local folder path
+        /// </summary>
+        /// <returns></returns>
+        private string prompSourcePath()
+        {
+
+            //We prompt user for directory selection
+            var dialog = new CommonOpenFileDialog();
+            dialog.IsFolderPicker = true;
+            dialog.Multiselect = false;
+            CommonFileDialogResult result = dialog.ShowDialog();
+            string selectedPath = dialog.FileName;
+
+            return selectedPath;
         }
 
         /// <summary>
@@ -185,20 +208,20 @@ namespace SharePointOnline_MigrationTool
         /// Retrive items from local directory
         /// </summary>
         /// <param name="url"></param>
-        private List<string> getSourceItems(string path)
+        private List<FileInfo> getSourceFiles(string path)
         {
-            List<string> fileList = new List<string>();
+            // TODO ADD the root directory !!
+            string[] Folders = Directory.GetDirectories(path, "*.*", SearchOption.AllDirectories);
 
-            // Call EnumerateFiles in a foreach-loop.
-            foreach (String file in Directory.EnumerateFiles(path,
-                "*.*",
-                SearchOption.AllDirectories))
-            {
-                {
-                    fileList.Add(file);
-                }  
+            List<DirectoryInfo> files = new List<DirectoryInfo>();
+
+            foreach (string folder in Folders)
+            {   
+                DirectoryInfo fi = new DirectoryInfo(folder);
+                files.Add(fi);
             }
-            return fileList;
+
+            return files;
         }
 
         #endregion
