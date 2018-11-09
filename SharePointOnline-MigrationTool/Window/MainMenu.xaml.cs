@@ -137,14 +137,36 @@ namespace SharePointOnline_MigrationTool
         {
             //We prompt for a folder path and retrieve related files
             string sourcePath = prompSourcePath();
-            List<FileInfo> sourceFiles = getSourceFiles(sourcePath);
+            //We create the source rootFolder DirInfo
+            DirectoryInfo rootFolder = new DirectoryInfo(sourcePath);
+            //We retrieve the sub dirinfos
+            List<DirectoryInfo> sourceFolders = getSourceFolders(sourcePath);
+            //We add the root
+            sourceFolders.Add(rootFolder);
 
-            foreach (FileInfo file in sourceFiles)
+            //We create the files fileinfo object
+            List<FileInfo> files = new List<FileInfo>();
+
+            //And loop inside all dir to retrieve the files fileinfo
+            foreach (DirectoryInfo directory in sourceFolders)
             {
-                string time = file.LastAccessTimeUtc.ToString();
-                TBOut.Text += time;
-                TBOut.Text += Environment.NewLine;
+                List<FileInfo> Currentfiles = getSourceFiles(directory.FullName);
+                foreach (FileInfo fi in Currentfiles)
+                {
+                    files.Add(fi);
+                }   
             }
+
+            foreach (FileInfo file in files)
+            {
+                TBOut.Text += file.FullName + Environment.NewLine;
+                TBOut.Text += file.LastAccessTime;
+            }
+
+            /*
+            TBOut.Text += sourceFolders;
+            TBOut.Text += Environment.NewLine;
+            TBOut.Text += files;
 
             //We retrieve the selected list from the Treeview and related SPOSite
             string[] selection = getSelectedTreeview();
@@ -161,7 +183,7 @@ namespace SharePointOnline_MigrationTool
             foreach (ListItem listItem in listItems)
             {
                 TBOut.Text += string.Format("{0} - {1}{2}{3}", listItem.FieldValues["FileLeafRef"], listItem.FieldValues["Modified"], listItem.FieldValues["FileRef"], Environment.NewLine);
-            }
+            }*/
         }
         #endregion
 
@@ -208,22 +230,41 @@ namespace SharePointOnline_MigrationTool
         /// Retrive items from local directory
         /// </summary>
         /// <param name="url"></param>
-        private List<FileInfo> getSourceFiles(string path)
+        private List<DirectoryInfo> getSourceFolders(string path)
         {
             // TODO ADD the root directory !!
             string[] Folders = Directory.GetDirectories(path, "*.*", SearchOption.AllDirectories);
 
-            List<DirectoryInfo> files = new List<DirectoryInfo>();
+            List<DirectoryInfo> folders = new List<DirectoryInfo>();
 
             foreach (string folder in Folders)
             {   
-                DirectoryInfo fi = new DirectoryInfo(folder);
+                DirectoryInfo di = new DirectoryInfo(folder);
+                folders.Add(di);
+            }
+
+            return folders;
+        }
+
+        /// <summary>
+        /// Retrive items from local directory
+        /// </summary>
+        /// <param name="url"></param>
+        private List<FileInfo> getSourceFiles(string path)
+        {
+            // TODO ADD the root directory !!
+            string[] Files = Directory.GetFiles(path, "*.*", SearchOption.TopDirectoryOnly);
+
+            List<FileInfo> files = new List<FileInfo>();
+
+            foreach (string File in Files)
+            {
+                FileInfo fi = new FileInfo(File);
                 files.Add(fi);
             }
 
             return files;
         }
-
         #endregion
     }
 }
