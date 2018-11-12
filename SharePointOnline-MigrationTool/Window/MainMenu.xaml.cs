@@ -8,6 +8,7 @@ using Microsoft.SharePoint.Client;
 using Microsoft.Online.SharePoint.TenantAdministration;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using System.IO;
+using System.Text;
 
 namespace SharePointOnline_MigrationTool
 {
@@ -42,6 +43,7 @@ namespace SharePointOnline_MigrationTool
         {
             // Call the SPOLogic object
             SPOLogic sp = new SPOLogic(credential, tenantUrl);
+            
             // Ask for Sites and loop
             SPOSitePropertiesEnumerable Tenant = sp.getTenantProp();
             foreach (var site in Tenant)
@@ -137,31 +139,50 @@ namespace SharePointOnline_MigrationTool
         {
             //We prompt for a folder path and retrieve related files
             string sourcePath = prompSourcePath();
-            //We create the source rootFolder DirInfo
-            DirectoryInfo rootFolder = new DirectoryInfo(sourcePath);
+
             //We retrieve the sub dirinfos
             List<DirectoryInfo> sourceFolders = getSourceFolders(sourcePath);
-            //We add the root
-            sourceFolders.Add(rootFolder);
 
             //We create the files fileinfo object
             List<FileInfo> files = new List<FileInfo>();
 
-            //And loop inside all dir to retrieve the files fileinfo
-            foreach (DirectoryInfo directory in sourceFolders)
+            // Start a task to loop on directories and retrieve file info
+            Task.Factory.StartNew(() =>
             {
-                List<FileInfo> Currentfiles = getSourceFiles(directory.FullName);
-                foreach (FileInfo fi in Currentfiles)
+                //And loop inside all dir to retrieve the files fileinfo
+                foreach (DirectoryInfo directory in sourceFolders)
                 {
-                    files.Add(fi);
-                }   
-            }
+                    List<FileInfo> Currentfiles = getSourceFiles(directory.FullName);
+                    foreach (FileInfo fi in Currentfiles)
+                    {
+                        files.Add(fi);
+                    }
+                }
+                
+                //We create the path 
+                DateTime now = DateTime.Now;
+                var date = now.ToString("yyyy-MM-dd-HH-mm-ss");
+                string csvFileName = "Getfile";
+                var appPath = AppDomain.CurrentDomain.BaseDirectory;
+                var csvfilePath = $"{appPath}{csvFileName}{date}.csv" ;
+                //We create the stringbuilder
+                var csv = new StringBuilder();
+                var header = "Filepath,FileName,LastAccessTime";
+                csv.AppendLine(header);
 
-            foreach (FileInfo file in files)
-            {
-                TBOut.Text += file.FullName + Environment.NewLine;
-                TBOut.Text += file.LastAccessTime;
-            }
+                //Retrive fileinfo and write on csv file
+                foreach (FileInfo file in files)
+                {
+                    var filePath = file.FullName;
+                    var fileLastAccess = file.LastAccessTime;
+                    var fileName = file.Name;
+                    var newLine = string.Format("{0},{1},{2}", filePath, fileName, fileLastAccess);
+                    csv.AppendLine(newLine);
+                }
+
+                System.IO.File.WriteAllText(csvfilePath, csv.ToString());
+                MessageBox.Show("Task done");
+            });
 
             /*
             TBOut.Text += sourceFolders;
@@ -234,9 +255,13 @@ namespace SharePointOnline_MigrationTool
         {
             // TODO ADD the root directory !!
             string[] Folders = Directory.GetDirectories(path, "*.*", SearchOption.AllDirectories);
-
+            //We create the list to put all directories
             List<DirectoryInfo> folders = new List<DirectoryInfo>();
+            //We create the source rootFolder DirInfo and add it to the top of the list
+            DirectoryInfo rootFolder = new DirectoryInfo(path);
+            folders.Add(rootFolder);
 
+            //We loop to populate directory info from directory path
             foreach (string folder in Folders)
             {   
                 DirectoryInfo di = new DirectoryInfo(folder);
@@ -252,11 +277,12 @@ namespace SharePointOnline_MigrationTool
         /// <param name="url"></param>
         private List<FileInfo> getSourceFiles(string path)
         {
-            // TODO ADD the root directory !!
+            //We retrive file path from the directory path
             string[] Files = Directory.GetFiles(path, "*.*", SearchOption.TopDirectoryOnly);
-
+            //We create the list to store files info
             List<FileInfo> files = new List<FileInfo>();
 
+            //We loop to populate fileinfo from file path
             foreach (string File in Files)
             {
                 FileInfo fi = new FileInfo(File);
