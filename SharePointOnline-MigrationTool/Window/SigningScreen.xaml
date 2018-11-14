@@ -29,7 +29,7 @@
             <TextBlock Name="TBLoginFillerBot" Height="25" />
             <StackPanel Orientation="Horizontal">
                 <CheckBox Name="CBSaveCred" VerticalContentAlignment="Center"/>
-                <Label Name="SaveCred" Content="Save Credential on this machine                    " VerticalContentAlignment="Center"/>
+                <Label Name="SaveCred" Content="Save Credential on this machine                    " VerticalContentAlignment="Center" />
                 <Button Name="Connect" Content="Connect" Width="75" Height="35" Click="Connect_Click"/>
             </StackPanel>
 

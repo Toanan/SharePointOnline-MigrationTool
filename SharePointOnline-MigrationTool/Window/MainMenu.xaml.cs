@@ -110,6 +110,7 @@ namespace SharePointOnline_MigrationTool
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
+        /*
         private void Migrate_Click(object sender, RoutedEventArgs e)
         {
             //We set up source and target strings
@@ -129,89 +130,95 @@ namespace SharePointOnline_MigrationTool
                 MessageBox.Show(ex.Message);
             }
         }
+        */
 
         /// <summary>
-        /// Retrive the items from the selected list
+        /// Retrive file info from the selected path and create csv
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void BtnGetListItems_Click(object sender, RoutedEventArgs e)
+        private void BtnGetSourceItems_Click(object sender, RoutedEventArgs e)
         {
-            //We prompt for a folder path and retrieve related files
-            string sourcePath = prompSourcePath();
-
-            //We retrieve the sub dirinfos
-            List<DirectoryInfo> sourceFolders = getSourceFolders(sourcePath);
-
-            //We create the files fileinfo object
-            List<FileInfo> files = new List<FileInfo>();
-
-            // Start a task to loop on directories and retrieve file info
-            Task.Factory.StartNew(() =>
+            if (!string.IsNullOrEmpty(TBSource.Text))
             {
-                //And loop inside all dir to retrieve the files fileinfo
-                foreach (DirectoryInfo directory in sourceFolders)
+                if (Directory.Exists(TBSource.Text))
                 {
-                    List<FileInfo> Currentfiles = getSourceFiles(directory.FullName);
-                    foreach (FileInfo fi in Currentfiles)
+                    string sourcePath = TBSource.Text;
+                    //We retrieve the sub dirinfos
+                    List<DirectoryInfo> sourceFolders = getSourceFolders(sourcePath);
+
+                    //We create the files fileinfo object
+                    List<FileInfo> files = new List<FileInfo>();
+
+                    // Start a task to loop on directories and retrieve file info
+                    Task.Factory.StartNew(() =>
                     {
-                        files.Add(fi);
-                    }
+                        //And loop inside all dir to retrieve the files fileinfo
+                        foreach (DirectoryInfo directory in sourceFolders)
+                        {
+                            List<FileInfo> Currentfiles = getSourceFiles(directory.FullName);
+                            foreach (FileInfo fi in Currentfiles)
+                            {
+                                files.Add(fi);
+                            }
+                        }
+                        
+                        //We create the path 
+                        DateTime now = DateTime.Now;
+                        var date = now.ToString("yyyy-MM-dd-HH-mm-ss");
+                        string csvFileName = "Getfile";
+                        var appPath = AppDomain.CurrentDomain.BaseDirectory;
+                        var csvfilePath = $"{appPath}{csvFileName}{date}.csv";
+                        //We create the stringbuilder
+                        var csv = new StringBuilder();
+                        var header = "Filepath,FileName,LastAccessTime,NormalizedPath";
+                        csv.AppendLine(header);
+
+                        //Retrive fileinfo and write on csv file
+                        foreach (FileInfo file in files)
+                        {
+                            var filePath = file.FullName;
+                            var fileLastAccess = file.LastAccessTime;
+                            var fileName = file.Name;
+                            var normalizedFilePath = file.FullName.Remove(0, sourcePath.Length) ;
+                            var newLine = string.Format("{0},{1},{2},{3}", filePath, fileName, fileLastAccess, normalizedFilePath);
+                            csv.AppendLine(newLine);
+                        }
+
+                        System.IO.File.WriteAllText(csvfilePath, csv.ToString(), Encoding.UTF8);
+                        System.IO.File.Open(csvfilePath, FileMode.Open);
+                        MessageBox.Show("Task done");
+                    });
+                }
+                else
+                {
+                    MessageBox.Show("No directory found in this path \nPlease double check");
                 }
                 
-                //We create the path 
-                DateTime now = DateTime.Now;
-                var date = now.ToString("yyyy-MM-dd-HH-mm-ss");
-                string csvFileName = "Getfile";
-                var appPath = AppDomain.CurrentDomain.BaseDirectory;
-                var csvfilePath = $"{appPath}{csvFileName}{date}.csv" ;
-                //We create the stringbuilder
-                var csv = new StringBuilder();
-                var header = "Filepath,FileName,LastAccessTime";
-                csv.AppendLine(header);
-
-                //Retrive fileinfo and write on csv file
-                foreach (FileInfo file in files)
-                {
-                    var filePath = file.FullName;
-                    var fileLastAccess = file.LastAccessTime;
-                    var fileName = file.Name;
-                    var newLine = string.Format("{0},{1},{2}", filePath, fileName, fileLastAccess);
-                    csv.AppendLine(newLine);
-                }
-
-                System.IO.File.WriteAllText(csvfilePath, csv.ToString());
-                MessageBox.Show("Task done");
-            });
-
-            /*
-            TBOut.Text += sourceFolders;
-            TBOut.Text += Environment.NewLine;
-            TBOut.Text += files;
-
-            //We retrieve the selected list from the Treeview and related SPOSite
-            string[] selection = getSelectedTreeview();
-
-            //We instanciate the SPOLogic class
-            SPOLogic spol = new SPOLogic(credential, selection[1]);
-
-            //We retrieve listitems from the selected library
-            ListItemCollection listItems = spol.getLibraryFile(selection[0]);
-
-
-
-            //We loop the listitems to show on TBOut
-            foreach (ListItem listItem in listItems)
+            }
+            else
             {
-                TBOut.Text += string.Format("{0} - {1}{2}{3}", listItem.FieldValues["FileLeafRef"], listItem.FieldValues["Modified"], listItem.FieldValues["FileRef"], Environment.NewLine);
-            }*/
+                MessageBox.Show("Please choose a source path \nYou can use the browse button :)");
+            }
+
+        }
+
+        /// <summary>
+        /// Open the dialog to prompt for source path
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void BtnBrowseSource_Click(object sender, RoutedEventArgs e)
+        {
+            //We prompt for a folder path and retrieve related files
+            TBSource.Text = prompSourcePath();
         }
         #endregion
 
         #region Functions
 
         /// <summary>
-        /// Prompt user for a local folder path
+        /// Prompt user for a local folder path and populate the TBSource with it
         /// </summary>
         /// <returns></returns>
         private string prompSourcePath()
@@ -221,10 +228,9 @@ namespace SharePointOnline_MigrationTool
             var dialog = new CommonOpenFileDialog();
             dialog.IsFolderPicker = true;
             dialog.Multiselect = false;
-            CommonFileDialogResult result = dialog.ShowDialog();
-            string selectedPath = dialog.FileName;
+            //We return the value if selected or null
+            return dialog.ShowDialog() == CommonFileDialogResult.Ok ? dialog.FileName : null;
 
-            return selectedPath;
         }
 
         /// <summary>
@@ -292,5 +298,28 @@ namespace SharePointOnline_MigrationTool
             return files;
         }
         #endregion
+
+        /// <summary>
+        /// Retrieve listitems from SPOList -------------- TO IMPLEMENT
+        /// </summary>
+        private void getListItems()
+        {
+
+            //We retrieve the selected list from the Treeview and related SPOSite
+            string[] selection = getSelectedTreeview();
+
+            //We instanciate the SPOLogic class
+            SPOLogic spol = new SPOLogic(credential, selection[1]);
+
+            //We retrieve listitems from the selected library
+            ListItemCollection listItems = spol.getLibraryFile(selection[0]);
+
+            //We loop the listitems to show on TBOut
+            foreach (ListItem listItem in listItems)
+            {
+                TBOut.Text += string.Format("{0} - {1}{2}{3}", listItem.FieldValues["FileLeafRef"], listItem.FieldValues["Modified"], listItem.FieldValues["FileRef"], Environment.NewLine);
+            }
+        }
+
     }
 }
