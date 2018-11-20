@@ -163,7 +163,7 @@ namespace SharePointOnline_MigrationTool
                             }
                         }
                         
-                        //We create the path 
+                        //We create the path of the csv file
                         DateTime now = DateTime.Now;
                         var date = now.ToString("yyyy-MM-dd-HH-mm-ss");
                         string csvFileName = "Getfile";
@@ -171,7 +171,7 @@ namespace SharePointOnline_MigrationTool
                         var csvfilePath = $"{appPath}{csvFileName}{date}.csv";
                         //We create the stringbuilder
                         var csv = new StringBuilder();
-                        var header = "Filepath,FileName,LastAccessTime,NormalizedPath";
+                        var header = "Filepath,FileName,LastAccessTime,NormalizedPath,FileSize";
                         csv.AppendLine(header);
 
                         //Retrive fileinfo and write on csv file
@@ -180,13 +180,13 @@ namespace SharePointOnline_MigrationTool
                             var filePath = file.FullName;
                             var fileLastAccess = file.LastAccessTime;
                             var fileName = file.Name;
-                            var normalizedFilePath = file.FullName.Remove(0, sourcePath.Length) ;
-                            var newLine = string.Format("{0},{1},{2},{3}", filePath, fileName, fileLastAccess, normalizedFilePath);
+                            var normalizedFilePath = file.FullName.Remove(0, sourcePath.Length);
+                            var fileSize = file.Length;
+                            var newLine = string.Format("{0},{1},{2},{3},{4}", filePath, fileName, fileLastAccess, normalizedFilePath, fileSize);
                             csv.AppendLine(newLine);
                         }
 
                         System.IO.File.WriteAllText(csvfilePath, csv.ToString(), Encoding.UTF8);
-                        System.IO.File.Open(csvfilePath, FileMode.Open);
                         MessageBox.Show("Task done");
                     });
                 }
@@ -213,6 +213,61 @@ namespace SharePointOnline_MigrationTool
             //We prompt for a folder path and retrieve related files
             TBSource.Text = prompSourcePath();
         }
+
+        /// <summary>
+        /// Retrieve files from the selected SPOSite and create a csv
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void BtnGetTargetFiles_Click(object sender, RoutedEventArgs e)
+        {
+            //We retrieve the selected list from the Treeview and related SPOSite
+            string[] selection = getSelectedTreeview();
+
+            //We instanciate the SPOLogic class
+            SPOLogic spol = new SPOLogic(credential, selection[1]);
+
+            //We retrieve the site Title
+            string siteUrl = selection[1];
+            string siteName = siteUrl.Remove(0, (siteUrl.LastIndexOf("/")));
+
+            //We retrieve the library Title
+            var list = spol.getListName(selection[0]);
+            string listName = list.RootFolder.Name.ToString();
+
+            //We create the Site/Library Url to compute the Normalized path
+            string siteLibUrl = string.Format("/sites{0}/{1}", siteName, listName);
+
+            
+
+            //We retrieve listitems from the selected library
+            ListItemCollection listItems = spol.getLibraryFile(selection[0]);
+
+            //We create the path of the csv file
+            DateTime now = DateTime.Now;
+            var date = now.ToString("yyyy-MM-dd-HH-mm-ss");
+            string csvFileName = "GetListItem";
+            var appPath = AppDomain.CurrentDomain.BaseDirectory;
+            var csvfilePath = $"{appPath}{csvFileName}{date}.csv";
+            //We create the stringbuilder
+            var csv = new StringBuilder();
+            var header = "Filepath,FileName,LastAccessTime,NormalizedPath,FileSize";
+            csv.AppendLine(header);
+
+            //We loop the listitems to populate the csv
+            foreach (ListItem listItem in listItems)
+            {
+                string filePath = listItem.FieldValues["FileRef"].ToString();
+                string normalizedPath = filePath.Replace(siteLibUrl, "");
+
+                var newLine = string.Format("{0},{1},{2},{3},{4}", listItem.FieldValues["FileRef"], listItem.FieldValues["FileLeafRef"], listItem.FieldValues["Modified"], normalizedPath, listItem.FieldValues["File_x0020_Size"]);
+                csv.AppendLine(newLine);
+            }
+
+            System.IO.File.WriteAllText(csvfilePath, csv.ToString(), Encoding.UTF8);
+            MessageBox.Show("Task done");
+        }
+
         #endregion
 
         #region Functions
@@ -320,6 +375,5 @@ namespace SharePointOnline_MigrationTool
                 TBOut.Text += string.Format("{0} - {1}{2}{3}", listItem.FieldValues["FileLeafRef"], listItem.FieldValues["Modified"], listItem.FieldValues["FileRef"], Environment.NewLine);
             }
         }
-
     }
 }

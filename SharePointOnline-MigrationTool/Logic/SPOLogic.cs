@@ -196,6 +196,22 @@ namespace SharePointOnline_MigrationTool
                 return collListItem;
             }
         }
+
+        public List getListName(string targetLib)
+        {
+            // using ClientContext
+            using (ClientContext ctx = new ClientContext(Url))
+            {
+                ctx.Credentials = Credentials;
+
+                var url = ctx.Url;
+                var list = ctx.Web.Lists.GetByTitle(targetLib);
+                ctx.Load(list, w => w.RootFolder.Name);
+                ctx.ExecuteQueryRetry();
+
+                return list;
+            }
+        }
     }
 
 }

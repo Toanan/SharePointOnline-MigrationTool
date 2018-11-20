@@ -19,6 +19,7 @@
             <TextBox Name="TBSource" />
             <Button Name="BtnBrowseSource" Content="Browse" Click="BtnBrowseSource_Click" />
             <Button Name="BtnGetSourceFiles" Content="Get Source Files" Click="BtnGetSourceItems_Click" />
+            <Button Name="BtnGetTargetFiles" Content="Get Target Files" Click="BtnGetTargetFiles_Click" />
             <!-- <Button Name="Migrate" Content="Migrate" Click="Migrate_Click" />-->
             <TextBox Name="TBOut" Height="667" Margin="0,0,0.2,0" />
         </StackPanel>
