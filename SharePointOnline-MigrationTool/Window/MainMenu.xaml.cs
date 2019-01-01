@@ -168,10 +168,11 @@ namespace SharePointOnline_MigrationTool
                         var date = now.ToString("yyyy-MM-dd-HH-mm-ss");
                         string csvFileName = "Getfile";
                         var appPath = AppDomain.CurrentDomain.BaseDirectory;
-                        var csvfilePath = $"{appPath}{csvFileName}{date}.csv";
-                        //We create the stringbuilder
+                        var csvfilePath = $"{appPath}/logs/{csvFileName}{date}.csv";
+                        Directory.CreateDirectory($"{appPath}/logs/");
+                        //We create the stringbuilder to store file retrived information
                         var csv = new StringBuilder();
-                        var header = "Filepath,FileName,LastAccessTime,NormalizedPath,FileSize";
+                        var header = "Filepath,FileName,LastAccessTime,NormalizedPath,FileSize,Hash";
                         csv.AppendLine(header);
 
                         //Retrive fileinfo and write on csv file
@@ -182,7 +183,11 @@ namespace SharePointOnline_MigrationTool
                             var fileName = file.Name;
                             var normalizedFilePath = file.FullName.Remove(0, sourcePath.Length);
                             var fileSize = file.Length;
-                            var newLine = string.Format("{0},{1},{2},{3},{4}", filePath, fileName, fileLastAccess, normalizedFilePath, fileSize);
+
+                            Logic.FileHash HashObj = new Logic.FileHash(filePath);
+                            string hash = HashObj.CreateHash();
+
+                            var newLine = string.Format("{0},{1},{2},{3}", filePath, fileName, normalizedFilePath, hash);
                             csv.AppendLine(newLine);
                         }
 
@@ -251,16 +256,25 @@ namespace SharePointOnline_MigrationTool
             var csvfilePath = $"{appPath}{csvFileName}{date}.csv";
             //We create the stringbuilder
             var csv = new StringBuilder();
-            var header = "Filepath,FileName,LastAccessTime,NormalizedPath,FileSize";
+            var header = "Filepath,FileName,NormalizedPath,Hash";
             csv.AppendLine(header);
 
             //We loop the listitems to populate the csv
             foreach (ListItem listItem in listItems)
             {
+                if (listItem.FileSystemObjectType == FileSystemObjectType.Folder)
+                    continue;
                 string filePath = listItem.FieldValues["FileRef"].ToString();
                 string normalizedPath = filePath.Replace(siteLibUrl, "");
 
-                var newLine = string.Format("{0},{1},{2},{3},{4}", listItem.FieldValues["FileRef"], listItem.FieldValues["FileLeafRef"], listItem.FieldValues["Modified"], normalizedPath, listItem.FieldValues["File_x0020_Size"]);
+                string fileActualPath = $"{selection[1]}/{selection[0]}/{listItem.FieldValues["FileLeafRef"]}";
+
+                listItem.
+
+                Logic.FileHash HashObj = new Logic.FileHash(fileActualPath);
+                string hash = HashObj.CreateHash();
+
+                var newLine = string.Format("{0},{1},{2},{3}", listItem.FieldValues["FileRef"], listItem.FieldValues["FileLeafRef"], normalizedPath, hash);
                 csv.AppendLine(newLine);
             }
 
@@ -353,27 +367,5 @@ namespace SharePointOnline_MigrationTool
             return files;
         }
         #endregion
-
-        /// <summary>
-        /// Retrieve listitems from SPOList -------------- TO IMPLEMENT
-        /// </summary>
-        private void getListItems()
-        {
-
-            //We retrieve the selected list from the Treeview and related SPOSite
-            string[] selection = getSelectedTreeview();
-
-            //We instanciate the SPOLogic class
-            SPOLogic spol = new SPOLogic(credential, selection[1]);
-
-            //We retrieve listitems from the selected library
-            ListItemCollection listItems = spol.getLibraryFile(selection[0]);
-
-            //We loop the listitems to show on TBOut
-            foreach (ListItem listItem in listItems)
-            {
-                TBOut.Text += string.Format("{0} - {1}{2}{3}", listItem.FieldValues["FileLeafRef"], listItem.FieldValues["Modified"], listItem.FieldValues["FileRef"], Environment.NewLine);
-            }
-        }
     }
 }
